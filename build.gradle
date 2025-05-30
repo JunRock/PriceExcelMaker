@@ -64,7 +64,7 @@ jlink {
                 '--win-shortcut',
                 '--win-per-user-install'
         ]
-        //icon = 'src/main/resources/icon.ico' // 아이콘 설정 (선택), 없으면 주석처리 가능
+        icon = 'src/main/resources/enfix.ico'
     }
 }
 
