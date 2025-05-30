@@ -113,7 +113,7 @@ public class Main extends Application {
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("가격표");
-            String[] headers = {"제품", "부품", "원가", "+20%", "+30%", "+40%", "+50%"};
+            String[] headers = {"제품", "부품", "원가", "-20%", "-30%", "-40%", "-50%"};
 
             Font headerFont = workbook.createFont();
             headerFont.setBold(true);
@@ -166,7 +166,7 @@ public class Main extends Application {
                             double cost = Double.parseDouble(costStr);
                             Row row = sheet.createRow(rowIdx);
                             Object[] values = {productName, partName, cost,
-                                cost * 1.2, cost * 1.3, cost * 1.4, cost * 1.5};
+                                cost * 0.8, cost * 0.7, cost * 0.6, cost * 0.5};
                             for (int i = 0; i < values.length; i++) {
                                 Cell cell = row.createCell(i);
                                 if (values[i] instanceof String) {
