@@ -1,5 +1,6 @@
 package io.junseok.pricemaker;
 
+import java.io.FileInputStream;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -28,15 +29,33 @@ public class Main extends Application {
         root.setPadding(new Insets(15));
 
         productListContainer = new VBox(10);
-        root.getChildren().add(productListContainer);
 
+        ScrollPane scrollPane = new ScrollPane(productListContainer);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(500);
+        scrollPane.setStyle(
+            "-fx-background-color:transparent; -fx-background-insets: 0; -fx-padding: 0;"
+        );
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setPannable(true);
+        scrollPane.setBorder(Border.EMPTY);
+
+        HBox buttonBar = new HBox(10);
         Button addProductBtn = new Button("+ 제품 추가");
-        addProductBtn.setOnAction(e -> addProductRow());
-
+        Button loadBtn = new Button("엑셀 불러오기(.xlsx)");
         Button saveBtn = new Button("엑셀 저장");
+
+        addProductBtn.setOnAction(e -> addProductRow());
+        loadBtn.setOnAction(e -> loadExcel(stage));
         saveBtn.setOnAction(e -> saveExcel(stage));
 
-        root.getChildren().addAll(addProductBtn, saveBtn);
+        buttonBar.getChildren().addAll(addProductBtn, loadBtn, saveBtn);
+
+        Label footer = new Label("Copyright © 2025 JunSeok. All Rights Reserved.");
+        footer.setPadding(new Insets(20, 0, 0, 0));
+
+        root.getChildren().addAll(scrollPane, buttonBar, footer);
 
         addProductRow();
 
@@ -57,7 +76,6 @@ public class Main extends Application {
         });
 
         VBox partListBox = new VBox(5);
-
         Button addPartBtn = new Button("+ 부품 추가");
         addPartBtn.setOnAction(e -> addPartRow(partListBox));
 
@@ -92,9 +110,9 @@ public class Main extends Application {
         removeBtn.setOnAction(e -> container.getChildren().remove(row));
 
         container.getChildren().add(row);
-
         partNameField.setOnAction(e -> costField.requestFocus());
     }
+
     private TextField createTextField(String prompt, double width) {
         TextField field = new TextField();
         field.setPromptText(prompt);
@@ -102,14 +120,85 @@ public class Main extends Application {
         return field;
     }
 
+    private void loadExcel(Stage stage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("엑셀 파일 선택");
+        fileChooser.getExtensionFilters()
+            .add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+        File file = fileChooser.showOpenDialog(stage);
+        if (file == null) {
+            return;
+        }
+
+        try (Workbook workbook = new XSSFWorkbook(new FileInputStream(file))) {
+            Sheet sheet = workbook.getSheetAt(0);
+            productListContainer.getChildren().clear();
+
+            String lastProduct = "";
+            VBox currentProductBox = null;
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) {
+                    continue;
+                }
+
+                String product = row.getCell(0).getStringCellValue();
+                String part = row.getCell(1).getStringCellValue();
+                double cost = row.getCell(2).getNumericCellValue();
+
+                if (!product.equals(lastProduct)) {
+                    currentProductBox = new VBox(5);
+                    TextField productNameField = createTextField("제품명", 300);
+                    productNameField.setText(product);
+
+                    VBox partListBox = new VBox(5);
+                    Button addPartBtn = new Button("+ 부품 추가");
+                    addPartBtn.setOnAction(e -> addPartRow(partListBox));
+
+                    currentProductBox.getChildren().addAll(
+                        new Label("제품명"),
+                        productNameField,
+                        new Label("부품 목록"),
+                        partListBox,
+                        addPartBtn,
+                        new Separator()
+                    );
+
+                    productListContainer.getChildren().add(currentProductBox);
+                    lastProduct = product;
+                }
+
+                if (currentProductBox != null) {
+                    VBox partListBox = (VBox) currentProductBox.getChildren().get(3);
+                    TextField partNameField = createTextField("부품 이름", 200);
+                    TextField costField = createTextField("원가", 100);
+                    partNameField.setText(part);
+                    costField.setText(String.valueOf(cost));
+
+                    Button removeBtn = new Button("삭제");
+                    HBox partRow = new HBox(10, partNameField, costField, removeBtn);
+                    partRow.setPadding(new Insets(5));
+                    removeBtn.setOnAction(e -> partListBox.getChildren().remove(partRow));
+                    partListBox.getChildren().add(partRow);
+                }
+            }
+        } catch (IOException e) {
+            showAlert("오류", "엑셀 불러오기 실패: " + e.getMessage());
+        }
+    }
+
     private void saveExcel(Stage stage) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("엑셀 저장 위치 선택");
         fileChooser.setInitialFileName("가격표.xlsx");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+        fileChooser.getExtensionFilters()
+            .add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
 
         File file = fileChooser.showSaveDialog(stage);
-        if (file == null) return;
+        if (file == null) {
+            return;
+        }
 
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("가격표");
@@ -161,7 +250,9 @@ public class Main extends Application {
 
                             String partName = partNameField.getText().trim();
                             String costStr = costField.getText().trim();
-                            if (productName.isEmpty() || partName.isEmpty() || costStr.isEmpty()) continue;
+                            if (productName.isEmpty() || partName.isEmpty() || costStr.isEmpty()) {
+                                continue;
+                            }
 
                             double cost = Double.parseDouble(costStr);
                             Row row = sheet.createRow(rowIdx);
