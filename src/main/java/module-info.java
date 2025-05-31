@@ -1,9 +1,11 @@
 module io.junseok.pricemaker {
     requires javafx.controls;
-    requires javafx.fxml;
     requires org.apache.poi.poi;
     requires org.apache.poi.ooxml;
 
-    opens io.junseok.pricemaker to javafx.fxml;
     exports io.junseok.pricemaker;
+    exports io.junseok.pricemaker.excel.product;
+    exports io.junseok.pricemaker.excel.productpart;
+    exports io.junseok.pricemaker.excel;
+    exports io.junseok.pricemaker.util;
 }
