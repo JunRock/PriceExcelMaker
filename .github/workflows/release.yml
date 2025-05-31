@@ -1,10 +1,12 @@
-name: Build Windows EXE Installer
+name: Build and Release Windows EXE
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  build-exe:
+  build-and-release:
     runs-on: windows-latest
 
     steps:
@@ -23,8 +25,14 @@ jobs:
       - name: Build EXE installer
         run: ./gradlew jpackage
 
-      - name: Upload EXE artifact
-        uses: actions/upload-artifact@v4
+      - name: Create Release (latest)
+        uses: softprops/action-gh-release@v1
         with:
-          name: ExcelPriceMakerApp-Installer
-          path: build/jpackage/*.exe
+          tag_name: latest
+          name: "Latest Installer"
+          files: build/jpackage/*.exe
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
