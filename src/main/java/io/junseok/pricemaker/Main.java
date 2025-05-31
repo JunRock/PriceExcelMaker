@@ -1,6 +1,7 @@
 package io.junseok.pricemaker;
 
 import java.io.FileInputStream;
+import java.text.DecimalFormat;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -22,6 +23,7 @@ import java.util.*;
 public class Main extends Application {
 
     private VBox productListContainer;
+    private final DecimalFormat priceFormat = new DecimalFormat("#,###.##");
 
     @Override
     public void start(Stage stage) {
@@ -95,12 +97,26 @@ public class Main extends Application {
 
     private void addPartRow(VBox container) {
         TextField partNameField = createTextField("부품 이름", 200);
-        TextField costField = createTextField("원가", 100);
+        TextField costField = createTextField("원가(₩)", 100);
 
         costField.addEventFilter(KeyEvent.KEY_TYPED, event -> {
             String character = event.getCharacter();
             if (!character.matches("[0-9.]")) {
                 event.consume();
+            }
+        });
+
+        costField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal) {
+                try {
+                    String input = costField.getText().replace(",", "").trim();
+                    if (!input.isEmpty()) {
+                        double value = Double.parseDouble(input);
+                        costField.setText(priceFormat.format(value));
+                    }
+                } catch (NumberFormatException e) {
+                    costField.setText("");
+                }
             }
         });
 
