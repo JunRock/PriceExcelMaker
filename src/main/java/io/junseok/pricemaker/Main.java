@@ -83,12 +83,16 @@ public class Main extends Application {
 
         addPartRow(partListBox);
 
+        Button removeProductBtn = new Button("제품 삭제");
+        removeProductBtn.setOnAction(e -> productListContainer.getChildren().remove(productBox));
+
         productBox.getChildren().addAll(
             new Label("제품명"),
             productNameField,
             new Label("부품 목록"),
             partListBox,
             addPartBtn,
+            removeProductBtn,
             new Separator()
         );
 
@@ -188,9 +192,9 @@ public class Main extends Application {
                 if (currentProductBox != null) {
                     VBox partListBox = (VBox) currentProductBox.getChildren().get(3);
                     TextField partNameField = createTextField("부품 이름", 200);
-                    TextField costField = createTextField("원가", 100);
+                    TextField costField = createTextField("원가(₩)", 100);
                     partNameField.setText(part);
-                    costField.setText(String.valueOf(cost));
+                    costField.setText(priceFormat.format(cost));
 
                     Button removeBtn = new Button("삭제");
                     HBox partRow = new HBox(10, partNameField, costField, removeBtn);
@@ -265,7 +269,7 @@ public class Main extends Application {
                             TextField costField = (TextField) partRow.getChildren().get(1);
 
                             String partName = partNameField.getText().trim();
-                            String costStr = costField.getText().trim();
+                            String costStr = costField.getText().replace(",", "").trim();
                             if (productName.isEmpty() || partName.isEmpty() || costStr.isEmpty()) {
                                 continue;
                             }
