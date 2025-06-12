@@ -58,12 +58,6 @@ jlink {
     jpackage {
         installerType = 'app-image'
         appVersion = '1.0.0'
-        installerOptions = [
-                '--win-dir-chooser',
-                '--win-menu',
-                '--win-shortcut',
-                '--win-per-user-install'
-        ]
         icon = 'src/main/resources/enfix.ico'
     }
 }
