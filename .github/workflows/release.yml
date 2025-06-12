@@ -1,4 +1,4 @@
-name: Build and Release Windows EXE
+name: Build and Release Windows App Image ZIP
 
 on:
   push:
@@ -22,15 +22,21 @@ jobs:
       - name: Grant execute permission to gradlew
         run: git update-index --chmod=+x gradlew
 
-      - name: Build EXE installer
-        run: ./gradlew jpackage
+      - name: Build app-image (no installer)
+        run: ./gradlew jpackage --type app-image
 
-      - name: Create Release (latest)
+      - name: Zip the app-image
+        run: |
+          mkdir release
+          cp -r build/jpackage/* release/
+          powershell Compress-Archive -Path release\* -DestinationPath windows_app_image.zip
+
+      - name: Upload Release ZIP
         uses: softprops/action-gh-release@v1
         with:
           tag_name: latest
-          name: "Latest Installer"
-          files: build/jpackage/*.exe
+          name: "Latest Windows App Image"
+          files: windows_app_image.zip
           draft: false
           prerelease: false
           generate_release_notes: true
