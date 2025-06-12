@@ -22,10 +22,10 @@ jobs:
       - name: Grant execute permission to gradlew
         run: git update-index --chmod=+x gradlew
 
-      - name: Build app-image (no installer)
-        run: ./gradlew jpackage --type app-image
+      - name: Build app image
+        run: ./gradlew jpackage
 
-      - name: Zip the app-image
+      - name: Zip the app image
         run: |
           mkdir release
           cp -r build/jpackage/* release/
@@ -35,7 +35,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: latest
-          name: "Latest Windows App Image"
+          name: "Latest App Image"
           files: windows_app_image.zip
           draft: false
           prerelease: false
