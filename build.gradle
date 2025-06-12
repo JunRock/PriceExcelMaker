@@ -56,7 +56,7 @@ jlink {
         name = 'ExcelPriceMakerApp'
     }
     jpackage {
-        installerType = 'exe'
+        installerType = 'app-image'
         appVersion = '1.0.0'
         installerOptions = [
                 '--win-dir-chooser',
